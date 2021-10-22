@@ -2,6 +2,7 @@
     Gonzalo Antonio Bruna Clivio
     20.590.409-3
     Tarea 2 - Threads and Semaphores 
+    Repository: https://github.com/Gonzalo-Bruna/tarea-2-threads
 */
 
 #include <stdio.h>
