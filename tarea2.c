@@ -150,6 +150,8 @@ void spider(void *data, CURL* curl)
             {
                 // Primero debemos remover el slash del aux
                 memmove(aux, aux+1, size);
+                // Para ahorrar lineas de codigo, guardamos la url completa en la variable fullURL
+                // de esta manera, solo hacemos el llamado a 1 printf y fprintf
                 strcpy(fullURL, url);
                 strcat(fullURL, aux);
             }
@@ -158,9 +160,10 @@ void spider(void *data, CURL* curl)
                 strcpy(fullURL, aux);
             }
 
-            //Comprobamos tambien si es que ya visitamos el sitio en el archivo visitados
-            // Si es que ya esta visitado, solo mostramos un mensaje por pantalla
+            // Comprobamos tambien si es que ya visitamos el sitio en el archivo visitados,
+            // si es que ya esta visitado, solo mostramos un mensaje por pantalla
             if(estaVisitado(fullURL)){
+                // Por ahora el mensaje esta comentado para evitar mucho texto en la consola
                 // printf("Sitio visitado\n");
             }
             else{
@@ -186,6 +189,7 @@ void spider(void *data, CURL* curl)
     
 }
 
+// Se encargara de dar termino al programa, la condicion de termino cambia cuando el sleep termine
 void * threadTiempo(void * arg){
     long long int tiempo = (long long int)arg;
     termino = 0;
@@ -200,6 +204,7 @@ void * threadSpider(void * arg){
 
         CURL * curl = (CURL*) arg;
 
+        // Obtenemos un sitio mas desde el archivo de sitios
         sem_wait(&semaforoSitio);
         char sitioPorVisitar[128];
         fgets(sitioPorVisitar, 128, sitios);
@@ -223,26 +228,28 @@ void * threadSpider(void * arg){
         }
 
     }
-
-    // Una vez terminados los procesos, debemos cerrar el archivo de sitios
-    // fclose(sitios);
     
 }
 
 bool estaVisitado(char sitioPorVisitar[512]){
 
+    // Nos aseguramos de que el sitio ingresado no contenga salto de linea
     sitioPorVisitar[strcspn(sitioPorVisitar, "\n")] = '\0';
 
     sem_wait(&semaforoVisitados);
 
+    // Se puede dar el caso de que visitados.txt no exista aun, por lo que debemos asegurarnos
+    // de que no sea NULL.
     FILE * visitadosFile = fopen("visitados.txt", "r");
     if(visitadosFile == NULL){
         sem_post(&semaforoVisitados);
         return false;
-    } 
+    }
+
     char sitioVisitado[512];
 
     while(fgets(sitioVisitado, 512, visitadosFile) != NULL){
+        // Nos aseguramos de que el sitio tomado del archivo no contenga salto de linea
         sitioVisitado[strcspn(sitioVisitado, "\n")] = '\0';
         // Si es que el archivo visitados tenia el archivo por visitar, entonces retornamos true
         if(strcmp(sitioPorVisitar, sitioVisitado) == 0){
@@ -273,16 +280,12 @@ void initConfig(){
     fclose(config);
 }
 
-int main(int argc, char *argv)
-{
+void start (){
+
     // Inicializamos la configuración
     initConfig();
 
-    // Inicializamos la librería curl y una instancia para manejar las solicitudes
-    curl_global_init(CURL_GLOBAL_ALL);
-    CURL* curl = curl_easy_init();
-
-    // Iinicializamos los semaforos
+    // Inicializamos los semaforos
     sem_init(&semaforoSitio, 0, 1);
     sem_init(&semaforoVisitados, 0, 1);
     sem_init(&semaforoSpider, 0, 1);
@@ -293,6 +296,17 @@ int main(int argc, char *argv)
 
     // Abrimos el archivo de sitios en modo lectura
     sitios = fopen("sitios.txt", "r");
+
+}
+
+int main(int argc, char *argv)
+{
+    // Llamamamos a la funcion start que inicializa la configuracion y otras variables globales
+    start();
+
+    // Inicializamos la librería curl y una instancia para manejar las solicitudes
+    curl_global_init(CURL_GLOBAL_ALL);
+    CURL* curl = curl_easy_init();
 
     // Creamos un hilo de tiempo, este hilo se ejecutará paralelamente con los scripts,
     // cuando pase el tiempo que se pide (en segundos), el programa se terminará
