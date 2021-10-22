@@ -1,3 +1,9 @@
+/*
+    Gonzalo Antonio Bruna Clivio
+    20.590.409-3
+    Tarea 2 - Threads and Semaphores 
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
