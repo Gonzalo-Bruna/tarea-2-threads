@@ -1,10 +1,3 @@
-/*
-    Gonzalo Antonio Bruna Clivio
-    20.590.409-3
-    Tarea 2 - Threads and Semaphores 
-    Repository: https://github.com/Gonzalo-Bruna/tarea-2-threads
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -178,7 +171,8 @@ void spider(void *data, CURL* curl)
 
                 FILE * visitados = fopen("visitados.txt", "a");
                 fprintf(visitados, "%s\n", fullURL);
-                printf("%s\n\n", fullURL);
+                printf("visitando -> %s\n\n", fullURL);
+                // printf("%s\n\n", fullURL);
                 fclose(visitados);
 
                 sem_post(&semaforoVisitados);
@@ -218,7 +212,7 @@ void * threadSpider(void * arg){
         sem_post(&semaforoSitio);
 
         // Si es que sitioPorVisitar es vacio no debemos leerlo
-        if(sitioPorVisitar != NULL){
+        if(sitioPorVisitar != NULL && strcmp(sitioPorVisitar, "") != 0){
 
             // Solo realizamos la operacion si es que el sitio no estaba visitado
             if(!estaVisitado(sitioPorVisitar)){
